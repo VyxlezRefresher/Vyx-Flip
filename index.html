@@ -3,339 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vyx Flip</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Vyx Flip - Adopt Me Coinflip</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
-        /* SAME MOBILE CSS - MINIFIED FOR SPEED */
-        *{margin:0;padding:0;box-sizing:border-box}body{font-family:'Orbitron',monospace;background:linear-gradient(135deg,#000,#333);color:#fff;min-height:100vh;overflow-x:hidden}.container{max-width:1200px;margin:0 auto;padding:20px}.modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:1000}.modal.hidden{display:none}.modal.active{display:flex}.modal-content{background:linear-gradient(145deg,#1a1a1a,#2d2d2d);padding:30px;border-radius:20px;text-align:center;border:2px solid#00ff88;box-shadow:0 20px 40px rgba(0,255,136,0.3);max-width:90%;margin:20px}.modal-content h1{font-size:2.5em;font-weight:900;background:linear-gradient(45deg,#00ff88,#fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}.input-group{width:100%;margin:15px 0}.input-group input{width:100%;padding:15px;font-size:1.1em;border:2px solid#444;border-radius:10px;background:#1a1a1a;color:#fff;font-family:inherit}.input-group input:focus{outline:none;border-color:#00ff88;box-shadow:0 0 20px rgba(0,255,136,0.3)}.toggle-login{color:#00ff88;text-decoration:underline;cursor:pointer;font-size:1.1em}.btn{padding:15px 30px;font-size:1.1em;font-weight:700;background:linear-gradient(45deg,#00ff88,#00cc6a);border:none;border-radius:10px;color:#000;cursor:pointer;transition:all .3s;margin:5px;font-family:inherit}.btn:hover{transform:scale(1.05);box-shadow:0 10px 30px rgba(0,255,136,0.5)}.btn-danger{background:#ff4444;color:white}.dashboard.hidden{display:none}.dashboard{padding:20px}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:20px;background:rgba(255,255,255,0.05);border-radius:15px;flex-wrap:wrap;gap:10px}.user-info{display:flex;align-items:center;gap:15px;flex-wrap:wrap}.avatar{width:70px;height:70px;border-radius:50%;border:3px solid#00ff88}.balance-value{font-size:1.5em;font-weight:900;color:#00ff88}.logout-btn{padding:12px 25px;border-radius:10px;cursor:pointer;font-weight:700}.section{margin-bottom:30px}.section h3{font-size:1.5em;color:#00ff88;margin-bottom:15px}.pets-grid,.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:15px;margin-bottom:15px}.pet-card,.game-card{background:rgba(255,255,255,0.05);border:1px solid#444;border-radius:15px;padding:20px;text-align:center;transition:all .3s;cursor:pointer}.pet-card:hover,.game-card:hover{border-color:#00ff88;box-shadow:0 15px 30px rgba(0,255,136,0.2)}.pet-name{font-size:1.2em;font-weight:700;color:#00ff88;margin-bottom:10px}.pet-value{font-size:1em;color:#ccc}.ticket-btn,.create-game-btn{width:100%;font-size:1.2em}.game-modal{max-width:90%}.coinflip-container{display:flex;justify-content:center;gap:30px;margin:30px 0;flex-wrap:wrap}.coin{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2em;font-weight:900;transition:all .5s cubic-bezier(0.68,-0.55,0.265,1.55);cursor:pointer;margin:10px}.coin.heads{background:linear-gradient(45deg,#ffd700,#ffed4e);color:#333;transform:rotateY(1800deg)}.coin.tails{background:linear-gradient(45deg,#ccc,#fff);color:#333;transform:rotateY(1800deg)}.coin.side{background:linear-gradient(45deg,#666,#999);color:#fff}.bet-info{display:flex;justify-content:space-around;margin:20px 0;font-size:1.1em;font-weight:700;flex-wrap:wrap;gap:10px}.game-buttons{display:flex;gap:15px;justify-content:center;flex-wrap:wrap}.game-buttons button{padding:12px 25px;font-size:1.1em;font-weight:900;border-radius:10px;cursor:pointer}#joinBtn{background:linear-gradient(45deg,#00ff88,#00cc6a);color:#000}#flipBtn{background:linear-gradient(45deg,#ff6b6b,#ff8e8e);color:white}@media(max-width:600px){.modal-content{padding:25px}.coin{width:70px;height:70px;font-size:1.5em}}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+        }
+        
+        .container { max-width: 400px; margin: 0 auto; padding: 20px; height: 100vh; }
+        
+        /* NEON WHITE/GRAY THEME */
+        .neon-white { 
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ccc; 
+            color: #fff; 
+        }
+        .neon-gray { 
+            text-shadow: 0 0 5px #ccc, 0 0 10px #999, 0 0 15px #666; 
+            color: #ccc; 
+        }
+        
+        .title { 
+            font-size: 24px; 
+            text-align: center; 
+            margin: 20px 0; 
+            letter-spacing: 3px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        
+        .balance { 
+            text-align: center; 
+            font-size: 20px; 
+            margin: 20px 0; 
+            neon-white;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+        }
+        input, button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #333;
+            background: #111;
+            color: #fff;
+            font-family: inherit;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        input:focus { 
+            outline: none; 
+            border-color: #fff; 
+            box-shadow: 0 0 10px #fff; 
+        }
+        button {
+            background: linear-gradient(45deg, #333, #555);
+            cursor: pointer;
+            transition: all 0.3s;
+            neon-gray;
+        }
+        button:hover { 
+            background: linear-gradient(45deg, #555, #777);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ccc;
+        }
+        
+        /* LIVE GAMES UI */
+        .live-games {
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .live-game {
+            background: #111;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border-left: 4px solid #fff;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        
+        .flip-area {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .coin {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 3px solid #fff;
+            box-shadow: 0 0 30px #fff;
+        }
+        .coin.spinning { transform: rotateY(1800deg) scale(1.2); }
+        .coin-heads { background: linear-gradient(45deg, #fff, #ccc); }
+        .coin-tails { background: linear-gradient(45deg, #666, #999); }
+        
+        .status { 
+            font-size: 18px; 
+            text-align: center; 
+            margin: 20px 0; 
+            min-height: 30px;
+            neon-white;
+        }
+        
+        .hidden { display: none !important; }
+        .pets-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
+        .pet { background: #222; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #555; }
+        
+        /* MOBILE */
+        @media (max-width: 480px) {
+            .container { padding: 10px; }
+            .title { font-size: 20px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- LOGIN MODAL -->
-        <div id="loginModal" class="modal active">
-            <div class="modal-content">
-                <h1>Vyx Flip</h1>
-                <p>🔐 Secure Login</p>
-                
-                <div id="loginForm">
-                    <div class="input-group">
-                        <input type="text" id="usernameInput" placeholder="Roblox Username">
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="passwordInput" placeholder="Password">
-                    </div>
-                    <button class="btn" onclick="login()">Login</button>
-                    <div style="margin-top:15px">
-                        <span class="toggle-login" onclick="showRegister()">Don't have account? Register</span>
-                    </div>
-                </div>
-
-                <!-- REGISTER FORM (HIDDEN) -->
-                <div id="registerForm" style="display:none">
-                    <div class="input-group">
-                        <input type="text" id="regUsername" placeholder="Roblox Username">
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="regPassword" placeholder="Create Password">
-                    </div>
-                    <div class="input-group">
-                        <input type="password" id="regPasswordConfirm" placeholder="Confirm Password">
-                    </div>
-                    <button class="btn" onclick="register()">Create Account</button>
-                    <div style="margin-top:15px">
-                        <span class="toggle-login" onclick="showLogin()">Already have account? Login</span>
-                    </div>
-                </div>
+        <h1 class="title neon-white">⚫ VYX FLIP ⚪</h1>
+        
+        <!-- Login/Register -->
+        <div id="auth">
+            <div class="input-group">
+                <input id="username" placeholder="Username" maxlength="12">
             </div>
+            <div class="input-group">
+                <input id="password" type="password" placeholder="Password">
+            </div>
+            <button onclick="register()">🔐 Register</button>
+            <button onclick="login()">🚀 Login</button>
         </div>
-
-        <!-- DASHBOARD -->
-        <div id="dashboard" class="dashboard hidden">
-            <div class="header">
-                <div class="user-info">
-                    <img id="avatar" src="" alt="Avatar" class="avatar">
-                    <div>
-                        <h2 id="displayName"></h2>
-                        <div class="balance">Balance: <span id="balanceValue" class="balance-value">$0</span></div>
-                    </div>
-                </div>
-                <button onclick="logout()" class="logout-btn btn btn-danger">Logout</button>
+        
+        <!-- Main Game -->
+        <div id="game" class="hidden">
+            <div class="balance neon-white" id="balance">Balance: $1,000</div>
+            
+            <!-- LIVE GAMES LIST -->
+            <div class="live-games neon-gray">
+                <h3 style="margin-bottom: 10px;">🔴 LIVE FLIPS</h3>
+                <div id="liveGamesList">Waiting for players...</div>
             </div>
-
-            <section class="section pets-section">
-                <h3>🐉 Your Pets</h3>
-                <div id="petsList" class="pets-grid"></div>
-                <button onclick="openTicket()" class="ticket-btn btn">➕ Open Ticket</button>
-            </section>
-
-            <section class="section games-section">
-                <h3>🎰 Live Coinflips</h3>
-                <div id="gamesList" class="games-grid"></div>
-                <button onclick="createGame()" class="create-game-btn btn">⚠️ Create Game</button>
-            </section>
-
-            <!-- GAME MODAL -->
-            <div id="gameModal" class="modal">
-                <div class="modal-content game-modal">
-                    <h3 id="gameTitle">Waiting opponent...</h3>
-                    <div class="coinflip-container">
-                        <div id="coinLeft" class="coin side">?</div>
-                        <div id="coinRight" class="coin side">?</div>
-                    </div>
-                    <div class="bet-info">
-                        <div>Bet: $<span id="betAmount">0</span></div>
-                        <div>Pot: $<span id="potAmount">0</span></div>
-                    </div>
-                    <div class="game-buttons">
-                        <button id="joinBtn" onclick="joinGame(1)">Join Game</button>
-                        <button id="flipBtn" onclick="flipCoin()" disabled>🪙 FLIP</button>
-                    </div>
+            
+            <div class="flip-area">
+                <div class="input-group">
+                    <input id="betAmount" type="number" placeholder="Bet Amount" min="10" max="50000">
+                    <button onclick="startFlip()">🎲 FLIP</button>
                 </div>
+                <div class="coin" id="coin">?</div>
+                <div class="status" id="status">Place your bet!</div>
             </div>
+            
+            <div class="pets-grid" id="petsList"></div>
+            <button onclick="addPet()" style="width: 100%; margin-top: 10px;">➕ Add Test Pet</button>
         </div>
     </div>
 
     <script>
-        // LOCAL STORAGE DATABASE (PERSISTENT)
-        let usersDB = JSON.parse(localStorage.getItem('vyxUsers')) || {};
+        // UPDATE THIS LINE WITH YOUR BACKEND URL AFTER DEPLOY
+        const BACKEND_URL = 'http://localhost:3000'; // Change to your Render URL!
+        const socket = io(BACKEND_URL);
+        
         let currentUser = null;
-        let currentPets = [];
-        let currentGames = [];
-        let currentGame = null;
-
-        const HEADS = 'heads';
-        const TAILS = 'tails';
-
-        // REAL ROBLOX AVATAR API
-        async function getRobloxAvatar(username) {
+        let currentGameId = null;
+        
+        // LIVE GAMES - SEE OTHER PLAYERS
+        socket.on('player-joined', (playerId) => {
+            addLiveGame(playerId.slice(-6), '🔥 JOINED');
+        });
+        
+        socket.on('game-result', (data) => {
+            const result = data.won ? `💰 +$${data.amount}` : `💸 -$${data.amount}`;
+            addLiveGame(data.playerId.slice(-6), result);
+        });
+        
+        function addLiveGame(playerId, action) {
+            const gamesList = document.getElementById('liveGamesList');
+            const gameDiv = document.createElement('div');
+            gameDiv.className = 'live-game';
+            gameDiv.innerHTML = `<strong>${playerId}</strong> ${action}`;
+            gamesList.insertBefore(gameDiv, gamesList.firstChild);
+            
+            // Keep 10 recent games
+            while (gamesList.children.length > 10) {
+                gamesList.removeChild(gamesList.lastChild);
+            }
+        }
+        
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            if (!username || !password) return statusMsg('Fill all fields!');
+            
             try {
-                const userIdRes = await fetch(`https://users.roblox.com/v1/usernames/users`, {
+                const res = await fetch(`${BACKEND_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usernames: [username], excludeBannedUsers: false })
+                    body: JSON.stringify({ username, password })
                 });
-                const userData = await userIdRes.json();
-                if (userData.data && userData.data[0]) {
-                    const userId = userData.data[0].id;
-                    return `https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`;
+                const data = await res.json();
+                if (data.success) {
+                    statusMsg('Registered! Logging in...');
+                    setTimeout(login, 500);
+                } else {
+                    statusMsg(data.error);
                 }
-            } catch (e) {
-                console.log('Avatar fallback');
+            } catch(e) {
+                statusMsg('Backend offline - using local mode');
+                localRegister();
             }
-            // Fallback
-            return `https://www.roblox.com/headshot-thumbnail/image?userId=${username.hashCode()}&width=150&height=150&format=png`;
         }
-
-        function saveUsersDB() {
-            localStorage.setItem('vyxUsers', JSON.stringify(usersDB));
-        }
-
-        function showRegister() {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-        }
-
-        function showLogin() {
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-        }
-
-        async function register() {
-            const username = document.getElementById('regUsername').value.trim();
-            const password = document.getElementById('regPassword').value;
-            const confirm = document.getElementById('regPasswordConfirm').value;
-
-            if (!username || !password) {
-                alert('Fill all fields!');
-                return;
-            }
-
-            if (password !== confirm) {
-                alert('Passwords don\'t match!');
-                return;
-            }
-
-            if (usersDB[username]) {
-                alert('Username taken!');
-                return;
-            }
-
-            // Create account
-            usersDB[username] = {
-                password: btoa(password), // Simple base64 hash
-                balance: 1000,
-                pets: []
-            };
-            saveUsersDB();
-            alert('✅ Account created! Now login.');
-            showLogin();
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regPasswordConfirm').value = '';
-        }
-
+        
         async function login() {
-            const username = document.getElementById('usernameInput').value.trim();
-            const password = document.getElementById('passwordInput').value;
-
-            if (!username || !password) {
-                alert('Enter username & password!');
-                return;
-            }
-
-            const user = usersDB[username];
-            if (!user || user.password !== btoa(password)) {
-                alert('❌ Wrong username or password!');
-                return;
-            }
-
-            // LOGIN SUCCESS
-            currentUser = {
-                username: username,
-                balance: user.balance,
-                pets: user.pets || []
-            };
-
-            // Load real Roblox avatar
-            document.getElementById('avatar').src = await getRobloxAvatar(username);
-
-            document.getElementById('loginModal').classList.remove('active');
-            document.getElementById('dashboard').classList.remove('hidden');
-            document.getElementById('displayName').textContent = username;
-            currentPets = currentUser.pets;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
-            updateBalance();
-            renderPets();
-            renderGames();
-        }
-
-        function logout() {
-            currentUser = null;
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('loginModal').classList.add('active');
-            document.getElementById('usernameInput').value = '';
-            document.getElementById('passwordInput').value = '';
-            showLogin();
-        }
-
-        function updateBalance() {
-            document.getElementById('balanceValue').textContent = `$${currentUser.balance.toLocaleString()}`;
-        }
-
-        function renderPets() {
-            const container = document.getElementById('petsList');
-            container.innerHTML = currentPets.map(pet => `
-                <div class="pet-card">
-                    <div class="pet-name">${pet.name}</div>
-                    <div class="pet-value">$${pet.value?.toLocaleString() || 0}</div>
-                </div>
-            `).join('');
-        }
-
-        function renderGames() {
-            currentGames = [
-                {id:1,bet:250,players:1,side:HEADS},
-                {id:2,bet:500,players:0,side:TAILS},
-                {id:3,bet:1000,players:1,side:HEADS}
-            ];
-            const container = document.getElementById('gamesList');
-            container.innerHTML = currentGames.map(game => `
-                <div class="game-card" onclick="joinGame(${game.id})">
-                    <div style="font-size:1.5em;font-weight:900">$${game.bet.toLocaleString()}</div>
-                    <div>Players: ${game.players}/2</div>
-                    <div>${game.side.toUpperCase()}</div>
-                </div>
-            `).join('');
-        }
-
-        function openTicket() {
-            const petName = prompt('Pet name:');
-            const value = parseInt(prompt('Pet value:'));
-            if (petName && value && !isNaN(value)) {
-                currentPets.push({name: petName, value});
-                currentUser.balance += value;
-                currentUser.pets = currentPets;
-                usersDB[currentUser.username].pets = currentPets;
-                usersDB[currentUser.username].balance = currentUser.balance;
-                saveUsersDB();
-                renderPets();
-                updateBalance();
-                alert(`✅ Added ${petName} ($${value}) to balance!`);
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    saveLocal();
+                    showGame();
+                } else {
+                    statusMsg(data.error);
+                }
+            } catch(e) {
+                statusMsg('Backend offline - local login');
+                localLogin(username, password);
             }
         }
-
-        function createGame() {
-            const bet = parseInt(prompt('Bet amount:'));
-            if (bet && bet <= currentUser.balance && bet > 0) {
-                currentUser.balance -= bet;
-                usersDB[currentUser.username].balance = currentUser.balance;
-                saveUsersDB();
-                currentGame = {id: Date.now(), creator: currentUser.username, bet, side: Math.random() > 0.5 ? HEADS : TAILS, pot: bet};
-                showGameModal();
-                updateBalance();
+        
+        function localRegister() {
+            const username = document.getElementById('username').value;
+            localStorage.setItem('vyxUsers', JSON.stringify({
+                ...JSON.parse(localStorage.getItem('vyxUsers') || '{}'),
+                [username]: { password: btoa(document.getElementById('password').value), balance: 1000, pets: [] }
+            }));
+            currentUser = { username, balance: 1000, pets: [] };
+            showGame();
+        }
+        
+        function localLogin(username, password) {
+            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
+            const user = users[username];
+            if (user && user.password === btoa(password)) {
+                currentUser = { username, ...user };
+                showGame();
             } else {
-                alert('Invalid bet!');
+                statusMsg('Invalid credentials');
             }
         }
-
-        function joinGame(gameId) {
-            const game = currentGames.find(g => g.id === gameId);
-            if (!game || game.players >= 2) return;
-            if (game.bet > currentUser.balance) {
-                alert('Not enough balance!');
-                return;
+        
+        function showGame() {
+            document.getElementById('auth').classList.add('hidden');
+            document.getElementById('game').classList.remove('hidden');
+            updateUI();
+        }
+        
+        function statusMsg(msg) {
+            document.getElementById('status').textContent = msg;
+        }
+        
+        function updateUI() {
+            document.getElementById('balance').textContent = `Balance: $${currentUser.balance?.toLocaleString() || '1,000'}`;
+            updatePets();
+        }
+        
+        function updatePets() {
+            const petsList = document.getElementById('petsList');
+            petsList.innerHTML = '';
+            const pets = currentUser.pets || [];
+            if (pets.length) {
+                pets.forEach(pet => {
+                    const petDiv = document.createElement('div');
+                    petDiv.className = 'pet';
+                    petDiv.innerHTML = `<div>${pet.name}</div><div>$${pet.value?.toLocaleString()}</div>`;
+                    petsList.appendChild(petDiv);
+                });
             }
-            currentUser.balance -= game.bet;
-            usersDB[currentUser.username].balance = currentUser.balance;
-            saveUsersDB();
-            currentGame = {id: gameId, players: ['Player1', currentUser.username], bet: game.bet, side: game.side, pot: game.bet * 2};
-            updateBalance();
-            showGameModal();
         }
-
-        function showGameModal() {
-            document.getElementById('gameModal').classList.add('active');
-            document.getElementById('gameTitle').textContent = `🪙 ${currentGame.side.toUpperCase()} | Pot: $${currentGame.pot.toLocaleString()}`;
-            document.getElementById('betAmount').textContent = currentGame.bet.toLocaleString();
-            document.getElementById('potAmount').textContent = currentGame.pot.toLocaleString();
-            document.getElementById('joinBtn').style.display = 'none';
-            document.getElementById('flipBtn').disabled = false;
-        }
-
-        function flipCoin() {
-            document.getElementById('flipBtn').disabled = true;
-            document.getElementById('flipBtn').innerHTML = '⏳ FLIPPING...';
+        
+        async function startFlip() {
+            const amount = parseInt(document.getElementById('betAmount').value);
+            if (!amount || amount > (currentUser.balance || 1000) || amount < 10) {
+                return statusMsg('Invalid bet!');
+            }
+            
+            // Emit to other players
+            currentGameId = 'flip_' + Date.now();
+            socket.emit('join-game', currentGameId);
+            
+            const coin = document.getElementById('coin');
+            const statusEl = document.getElementById('status');
+            
+            statusMsg('FLIPPING...');
+            coin.classList.add('spinning');
+            document.getElementById('betAmount').disabled = true;
+            
             setTimeout(() => {
-                const result = Math.random() > 0.5 ? HEADS : TAILS;
-                document.getElementById('coinLeft').className = 'coin ' + result;
-                document.getElementById('coinRight').className = 'coin ' + result;
+                const isHeads = Math.random() > 0.5;
+                const won = isHeads;
+                const newBalance = (currentUser.balance || 1000) + (won ? amount : -amount);
+                
+                coin.className = `coin ${won ? 'coin-heads' : 'coin-tails'}`;
+                coin.textContent = won ? 'H' : 'T';
+                statusMsg(won ? `WON! +$${amount}` : `LOST! -$${amount}`);
+                
+                currentUser.balance = newBalance;
+                socket.emit('flip-result', { 
+                    gameId: currentGameId, 
+                    playerId: currentUser.username || 'YOU', 
+                    won, 
+                    amount 
+                });
+                
+                saveLocal();
+                updateUI();
+                
                 setTimeout(() => {
-                    if (result === currentGame.side) {
-                        currentUser.balance += currentGame.pot;
-                        alert(`🎉 WINNER! +$${currentGame.pot.toLocaleString()}`);
-                    } else {
-                        alert('😢 Better luck next time!');
-                    }
-                    usersDB[currentUser.username].balance = currentUser.balance;
-                    saveUsersDB();
-                    updateBalance();
-                    document.getElementById('gameModal').classList.remove('active');
-                    document.getElementById('flipBtn').innerHTML = '🪙 FLIP';
-                    document.getElementById('flipBtn').disabled = false;
-                }, 1500);
-            }, 500);
+                    document.getElementById('betAmount').disabled = false;
+                    document.getElementById('betAmount').value = '';
+                    statusMsg('Place your bet!');
+                    coin.textContent = '?';
+                    coin.className = 'coin';
+                }, 2500);
+            }, 1500);
         }
-
-        // Hash function for fallback
-        String.prototype.hashCode = function() {
-            let hash = 0;
-            for (let i = 0; i < this.length; i++) {
-                hash = ((hash << 5) - hash) + this.charCodeAt(i);
-                hash = hash & hash;
+        
+        async function addPet() {
+            const petNames = ['Neon Dragon', 'Shadow Dragon', 'Frost Dragon', 'Bat Dragon'];
+            const petName = petNames[Math.floor(Math.random() * petNames.length)];
+            const petValue = [500000, 1200000, 800000, 300000][petNames.indexOf(petName)];
+            
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/add-pet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: currentUser.username, petName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser.pets = currentUser.pets || [];
+                    currentUser.pets.push({ name: petName, value: data.value });
+                    currentUser.balance += data.value;
+                }
+            } catch(e) {
+                // Local fallback
+                currentUser.pets = currentUser.pets || [];
+                currentUser.pets.push({ name: petName, value: petValue });
+                currentUser.balance = (currentUser.balance || 1000) + petValue;
             }
-            return Math.abs(hash) % 1000000 + 1;
+            
+            saveLocal();
+            updateUI();
+            statusMsg(`Added ${petName}! +$${petValue.toLocaleString()}`);
+        }
+        
+        function saveLocal() {
+            localStorage.setItem('vyxUser', JSON.stringify(currentUser));
+        }
+        
+        // Auto-login
+        window.onload = () => {
+            const saved = localStorage.getItem('vyxUser');
+            if (saved) {
+                try {
+                    currentUser = JSON.parse(saved);
+                    showGame();
+                    // Try connect socket
+                    setTimeout(() => socket.connect(), 1000);
+                } catch {}
+            } else {
+                document.getElementById('liveGamesList').innerHTML = 'Login to see live games!';
+            }
         };
     </script>
 </body>
-  </html>
+</html>
