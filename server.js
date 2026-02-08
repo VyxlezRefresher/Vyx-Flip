@@ -12,6 +12,7 @@ app.use(express.static("public"));
 let users = {}; // { username: { balance: 0 } }
 let coinflipQueue = []; // waiting players
 
+// WebSocket connection
 wss.on("connection", ws => {
   ws.on("message", msg => {
     const data = JSON.parse(msg);
@@ -28,7 +29,6 @@ wss.on("connection", ws => {
       coinflipQueue.push({ username: ws.username, bet: data.betAmount, ws });
       broadcastQueue();
 
-      // start coinflip if 2 players
       if (coinflipQueue.length >= 2) runCoinflip();
     }
 
@@ -54,7 +54,6 @@ function broadcastQueue() {
   broadcast({ type: "queueUpdate", queue: coinflipQueue.map(p => ({ username: p.username, bet: p.bet })) });
 }
 
-// Coinflip logic
 function runCoinflip() {
   const [p1, p2] = coinflipQueue.splice(0, 2);
   const winner = Math.random() < 0.5 ? p1 : p2;
@@ -69,4 +68,4 @@ function runCoinflip() {
   broadcastQueue();
 }
 
-server.listen(3000, () => console.log("Server running on port 3000"));
+server.listen(process.env.PORT || 3000, () => console.log("Server running"));
