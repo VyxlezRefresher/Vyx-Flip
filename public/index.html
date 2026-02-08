@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VyxFlip Multiplayer</title>
+<style>
+body { margin:0;font-family:Arial,sans-serif; display:flex;height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63); color:#fff;}
+#loginModal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:100;}
+#loginModal input,#loginModal button{width:100%;padding:10px;margin:5px 0;border-radius:8px;border:none;}
+#loginModal button{background:#00ffff;color:#000;font-weight:700;cursor:pointer;}
+.sidebar{width:200px;background:rgba(20,20,30,0.85);padding:10px;display:flex;flex-direction:column;gap:10px;}
+.main{flex:1;padding:20px;display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+.coinflip-card{background:rgba(20,20,30,0.85);padding:20px;border-radius:12px;text-align:center;}
+.coin-container{perspective:1000px;margin:20px 0;}
+.coin{width:100px;height:100px;position:relative;transform-style:preserve-3d;transition:transform 1.5s;}
+.side{position:absolute;width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;backface-visibility:hidden;border:2px solid #fff;}
+.heads{background:#fff;color:#000;}
+.tails{background:#000;color:#fff;transform:rotateY(180deg);}
+.chat{width:200px;background:rgba(20,20,30,0.85);padding:10px;display:flex;flex-direction:column;}
+.chat-messages{flex:1;overflow-y:auto;gap:5px;display:flex;flex-direction:column;}
+.chat-message{background:rgba(30,30,40,0.9);padding:5px;border-radius:5px;}
+</style>
+</head>
+<body class="logged-out">
+
+<!-- Login -->
+<div id="loginModal">
+  <div>
+    <h2>Login / Verify Roblox</h2>
+    <input type="text" id="username" placeholder="Roblox Username">
+    <button onclick="login()">Login</button>
+  </div>
+</div>
+
+<div class="sidebar">
+  <h3>Balance: <span id="balance">0</span></h3>
+  <button onclick="joinCoinflip()">Join Coinflip</button>
+  <h4>Queue:</h4>
+  <ul id="queue"></ul>
+</div>
+
+<div class="main">
+  <div class="coinflip-card">
+    <div class="coin-container">
+      <div class="coin" id="coin">
+        <div class="side heads">H</div>
+        <div class="side tails">T</div>
+      </div>
+    </div>
+    <h3 id="coinflipResult"></h3>
+  </div>
+</div>
+
+<div class="chat">
+  <div class="chat-messages" id="chatMessages"></div>
+  <input type="text" id="chatInput" placeholder="Message">
+  <button onclick="sendChat()">Send</button>
+</div>
+
+<script>
+const ws = new WebSocket("ws://localhost:3000");
+let username;
+let rotation = 0;
+
+function login() {
+  username = document.getElementById("username").value.trim();
+  if(!username) return alert("Enter username");
+  ws.send(JSON.stringify({type:"login", username}));
+}
+
+ws.onmessage = (msg) => {
+  const data = JSON.parse(msg.data);
+  if(data.type==="loginSuccess"){
+    document.getElementById("loginModal").style.display="none";
+    document.getElementById("balance").textContent = data.balance;
+  }
+  if(data.type==="queueUpdate"){
+    const q = document.getElementById("queue");
+    q.innerHTML = "";
+    data.queue.forEach(u=>{
+      const li = document.createElement("li");
+      li.textContent = u.username + " ("+u.bet+")";
+      q.appendChild(li);
+    });
+  }
+  if(data.type==="coinflipResult"){
+    document.getElementById("coinflipResult").textContent = data.result;
+    document.getElementById("balance").textContent = data.newBalance;
+    rotation += 1800 + (data.result==="Loser"?180:0);
+    document.getElementById("coin").style.transform = `rotateY(${rotation}deg)`;
+  }
+  if(data.type==="chat"){
+    const chat = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = "chat-message";
+    div.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+}
+
+function joinCoinflip(){
+  const bet = parseInt(prompt("Enter bet amount")) || 0;
+  if(bet<=0) return;
+  ws.send(JSON.stringify({type:"joinCoinflip", betAmount:bet}));
+}
+
+function sendChat(){
+  const msg = document.getElementById("chatInput").value.trim();
+  if(!msg) return;
+  ws.send(JSON.stringify({type:"chat", message:msg}));
+  document.getElementById("chatInput").value="";
+}
+</script>
+
+</body>
+</html>
