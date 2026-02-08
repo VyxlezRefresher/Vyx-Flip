@@ -1,0 +1,64 @@
+import express from "express";
+import http from "http";
+import { WebSocketServer } from "ws";
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+let users = {}; // { username: { balance: 0 } }
+let coinflipQueue = []; // [{ username, betAmount, ws }]
+
+wss.on("connection", (ws) => {
+  ws.on("message", (message) => {
+    const data = JSON.parse(message);
+
+    if (data.type === "login") {
+      users[data.username] = users[data.username] || { balance: 0 };
+      ws.username = data.username;
+      ws.send(JSON.stringify({ type: "balanceUpdate", balance: users[data.username].balance }));
+    }
+
+    if (data.type === "joinCoinflip") {
+      coinflipQueue.push({ username: ws.username, betAmount: data.betAmount, ws });
+      broadcastQueue();
+
+      if (coinflipQueue.length >= 2) runCoinflip();
+    }
+
+    if (data.type === "chat") {
+      broadcast({ type: "chat", username: ws.username, message: data.message });
+    }
+  });
+
+  ws.on("close", () => {
+    // remove from queue if disconnected
+    coinflipQueue = coinflipQueue.filter(u => u.ws !== ws);
+  });
+});
+
+function broadcast(msg) {
+  wss.clients.forEach(client => {
+    if (client.readyState === 1) client.send(JSON.stringify(msg));
+  });
+}
+
+function broadcastQueue() {
+  broadcast({ type: "queueUpdate", queue: coinflipQueue.map(u => ({ username: u.username, bet: u.betAmount })) });
+}
+
+function runCoinflip() {
+  const [p1, p2] = coinflipQueue.splice(0, 2);
+  const winner = Math.random() < 0.5 ? p1 : p2;
+  const loser = winner === p1 ? p2 : p1;
+
+  users[winner.username].balance += loser.betAmount;
+  users[loser.username].balance -= loser.betAmount;
+
+  winner.ws.send(JSON.stringify({ type: "coinflipResult", result: "Winner", newBalance: users[winner.username].balance }));
+  loser.ws.send(JSON.stringify({ type: "coinflipResult", result: "Loser", newBalance: users[loser.username].balance }));
+
+  broadcastQueue();
+}
+
+server.listen(3000, () => console.log("Server running on port 3000"));
