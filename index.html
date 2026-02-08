@@ -6,269 +6,382 @@
     <title>Vyx Flip - Adopt Me Coinflip</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: #000;
+            background: linear-gradient(135deg, #000000 0%, #111111 50%, #222222 100%);
             color: #fff;
-            font-family: 'Courier New', monospace;
+            font-family: 'Orbitron', monospace;
             overflow-x: hidden;
+            min-height: 100vh;
         }
         
-        .container { max-width: 400px; margin: 0 auto; padding: 20px; height: 100vh; }
-        
-        /* NEON WHITE/GRAY THEME */
-        .neon-white { 
-            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ccc; 
-            color: #fff; 
-        }
-        .neon-gray { 
-            text-shadow: 0 0 5px #ccc, 0 0 10px #999, 0 0 15px #666; 
-            color: #ccc; 
+        /* WHITE/BLACK GLASSMORPHISM */
+        .glass { 
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
         }
         
-        .title { 
-            font-size: 24px; 
-            text-align: center; 
-            margin: 20px 0; 
-            letter-spacing: 3px;
-            animation: pulse 2s infinite;
+        .glow-white {
+            background: linear-gradient(45deg, #ffffff, #e0e0e0, #c0c0c0);
+            background-size: 300% 300%;
+            animation: gradientShift 3s ease infinite;
+            box-shadow: 0 0 30px #ffffff, inset 0 0 30px rgba(255,255,255,0.2);
         }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        
-        .balance { 
-            text-align: center; 
-            font-size: 20px; 
-            margin: 20px 0; 
-            neon-white;
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
         }
         
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* HEADER - EXACT BLOXBLITZ LAYOUT */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 40px #ffffff;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: #cccccc;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        /* CARDS - SAME STRUCTURE */
+        .card {
+            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 20px;
+            glass;
+        }
+        
+        /* BALANCE CARD */
+        .balance-card {
+            glow-white;
+            text-align: center;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 5px;
+            background: linear-gradient(45deg, #ffffff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .balance-label {
+            font-size: 14px;
+            color: #dddddd;
+            letter-spacing: 1px;
+        }
+        
+        /* INPUTS - SAME STYLE */
         .input-group {
             margin: 15px 0;
-            display: flex;
-            gap: 10px;
+            position: relative;
         }
-        input, button {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #333;
-            background: #111;
+        input {
+            width: 100%;
+            padding: 18px 20px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 15px;
+            background: rgba(0,0,0,0.5);
             color: #fff;
-            font-family: inherit;
-            border-radius: 8px;
+            font-family: 'Orbitron', monospace;
             font-size: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
-        input:focus { 
-            outline: none; 
-            border-color: #fff; 
-            box-shadow: 0 0 10px #fff; 
+        input:focus {
+            outline: none;
+            border-color: #ffffff;
+            box-shadow: 0 0 25px rgba(255,255,255,0.4);
+            background: rgba(0,0,0,0.7);
         }
-        button {
-            background: linear-gradient(45deg, #333, #555);
-            cursor: pointer;
-            transition: all 0.3s;
-            neon-gray;
-        }
-        button:hover { 
-            background: linear-gradient(45deg, #555, #777);
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #ccc;
+        input::placeholder {
+            color: #888;
         }
         
-        /* LIVE GAMES UI */
-        .live-games {
-            margin: 20px 0;
-            max-height: 200px;
+        /* BUTTONS */
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary {
+            glow-white;
+            color: #000;
+            font-weight: 900;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255,255,255,0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
+            border: 2px solid rgba(255,255,255,0.25);
+            color: #fff;
+            backdrop-filter: blur(10px);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-3px);
+        }
+        
+        /* LIVE GAMES - SAME LAYOUT */
+        .live-section {
+            margin: 25px 0;
+        }
+        .live-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        .live-list {
+            max-height: 180px;
             overflow-y: auto;
         }
         .live-game {
-            background: #111;
-            padding: 12px;
-            margin: 8px 0;
-            border-radius: 8px;
-            border-left: 4px solid #fff;
-            animation: slideIn 0.5s ease-out;
+            background: rgba(255,255,255,0.08);
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            border-left: 4px solid #ffffff;
+            animation: slideIn 0.4s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .live-player { font-weight: 700; color: #ffffff; }
+        .live-result { font-size: 14px; }
+        .win { color: #ffffff !important; text-shadow: 0 0 10px #ffffff; }
+        .loss { color: #888888 !important; }
         
-        .flip-area {
+        /* COIN FLIP - SAME POSITION */
+        .flip-section {
             text-align: center;
             margin: 30px 0;
         }
+        .coin-container {
+            perspective: 1000px;
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
         .coin {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
-            font-weight: bold;
-            transition: all 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            border: 3px solid #fff;
-            box-shadow: 0 0 30px #fff;
+            font-size: 42px;
+            font-weight: 900;
+            border: 4px solid #ffffff;
+            transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 40px rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.1);
         }
-        .coin.spinning { transform: rotateY(1800deg) scale(1.2); }
-        .coin-heads { background: linear-gradient(45deg, #fff, #ccc); }
-        .coin-tails { background: linear-gradient(45deg, #666, #999); }
+        .coin.spinning {
+            animation: coinFlip 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes coinFlip {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            100% { transform: rotateY(1080deg) rotateX(720deg); }
+        }
+        .coin-heads {
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            color: #000;
+            box-shadow: 0 0 40px #ffffff;
+        }
+        .coin-tails {
+            background: linear-gradient(45deg, #666666, #999999);
+            color: #fff;
+            box-shadow: 0 0 40px #cccccc;
+        }
         
-        .status { 
-            font-size: 18px; 
-            text-align: center; 
-            margin: 20px 0; 
+        .status {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 20px 0;
             min-height: 30px;
-            neon-white;
+            text-align: center;
+            letter-spacing: 1px;
         }
+        
+        /* PETS GRID */
+        .pets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .pet {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .pet-name { font-weight: 700; margin-bottom: 5px; }
+        .pet-value { font-size: 14px; color: #cccccc; }
         
         .hidden { display: none !important; }
-        .pets-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 20px 0; }
-        .pet { background: #222; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #555; }
         
-        /* MOBILE */
         @media (max-width: 480px) {
-            .container { padding: 10px; }
-            .title { font-size: 20px; }
+            .container { padding: 15px; }
+            .logo { font-size: 26px; }
+            .balance-amount { font-size: 28px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="title neon-white">⚫ VYX FLIP ⚪</h1>
-        
-        <!-- Login/Register -->
-        <div id="auth">
-            <div class="input-group">
-                <input id="username" placeholder="Username" maxlength="12">
-            </div>
-            <div class="input-group">
-                <input id="password" type="password" placeholder="Password">
-            </div>
-            <button onclick="register()">🔐 Register</button>
-            <button onclick="login()">🚀 Login</button>
+        <!-- HEADER - IDENTICAL LAYOUT -->
+        <div class="header">
+            <div class="logo">VYX FLIP</div>
+            <div class="subtitle">Adopt Me Coinflip</div>
         </div>
         
-        <!-- Main Game -->
-        <div id="game" class="hidden">
-            <div class="balance neon-white" id="balance">Balance: $1,000</div>
-            
-            <!-- LIVE GAMES LIST -->
-            <div class="live-games neon-gray">
-                <h3 style="margin-bottom: 10px;">🔴 LIVE FLIPS</h3>
-                <div id="liveGamesList">Waiting for players...</div>
-            </div>
-            
-            <div class="flip-area">
+        <!-- AUTH SECTION -->
+        <div id="auth">
+            <div class="card">
                 <div class="input-group">
-                    <input id="betAmount" type="number" placeholder="Bet Amount" min="10" max="50000">
-                    <button onclick="startFlip()">🎲 FLIP</button>
+                    <input id="username" placeholder="Enter Username" maxlength="12">
                 </div>
-                <div class="coin" id="coin">?</div>
-                <div class="status" id="status">Place your bet!</div>
+                <div class="input-group">
+                    <input id="password" type="password" placeholder="Enter Password">
+                </div>
+                <button class="btn btn-primary" onclick="register()">Create Account</button>
+                <button class="btn btn-secondary" onclick="login()">Play Now</button>
+            </div>
+        </div>
+        
+        <!-- MAIN GAME -->
+        <div id="game" class="hidden">
+            <!-- BALANCE -->
+            <div class="balance-card">
+                <div class="balance-amount" id="balance">$1,000</div>
+                <div class="balance-label">AVAILABLE</div>
             </div>
             
-            <div class="pets-grid" id="petsList"></div>
-            <button onclick="addPet()" style="width: 100%; margin-top: 10px;">➕ Add Test Pet</button>
+            <!-- LIVE GAMES -->
+            <div class="card">
+                <div class="live-section">
+                    <div class="live-title">🔴 LIVE GAMES</div>
+                    <div class="live-list" id="liveGamesList">
+                        <div style="text-align:center;color:#888;font-size:14px;">Waiting for players...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- COIN FLIP -->
+            <div class="flip-section">
+                <div class="input-group">
+                    <input id="betAmount" type="number" placeholder="Enter Bet Amount" min="10" max="50000">
+                </div>
+                <button class="btn btn-primary" onclick="startFlip()" style="margin-bottom:20px;">
+                    💰 DOUBLE OR NOTHING
+                </button>
+                <div class="coin-container">
+                    <div class="coin" id="coin">?</div>
+                </div>
+                <div class="status" id="status">Enter bet to start</div>
+            </div>
+            
+            <!-- PETS -->
+            <div class="card">
+                <div class="pets-grid" id="petsList"></div>
+                <button class="btn btn-secondary" onclick="addPet()">➕ CLAIM PET BONUS</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // UPDATE THIS LINE WITH YOUR BACKEND URL AFTER DEPLOY
-        const BACKEND_URL = 'http://localhost:3000'; // Change to your Render URL!
+        const BACKEND_URL = 'http://localhost:3000';
         const socket = io(BACKEND_URL);
-        
         let currentUser = null;
-        let currentGameId = null;
         
-        // LIVE GAMES - SEE OTHER PLAYERS
-        socket.on('player-joined', (playerId) => {
-            addLiveGame(playerId.slice(-6), '🔥 JOINED');
-        });
-        
+        // ALL SAME FUNCTIONALITY - JUST WHITE/BLACK COLORS
+        socket.on('player-joined', (playerId) => addLiveGame(playerId.slice(-6), '🔥 JOINED'));
         socket.on('game-result', (data) => {
             const result = data.won ? `💰 +$${data.amount}` : `💸 -$${data.amount}`;
-            addLiveGame(data.playerId.slice(-6), result);
+            addLiveGame(data.playerId.slice(-6), result, data.won);
         });
         
-        function addLiveGame(playerId, action) {
+        function addLiveGame(playerId, action, won = null) {
             const gamesList = document.getElementById('liveGamesList');
             const gameDiv = document.createElement('div');
             gameDiv.className = 'live-game';
-            gameDiv.innerHTML = `<strong>${playerId}</strong> ${action}`;
+            gameDiv.innerHTML = `
+                <span class="live-player">${playerId}</span>
+                <span class="live-result ${won ? 'win' : 'loss'}">${action}</span>
+            `;
             gamesList.insertBefore(gameDiv, gamesList.firstChild);
-            
-            // Keep 10 recent games
-            while (gamesList.children.length > 10) {
-                gamesList.removeChild(gamesList.lastChild);
-            }
+            while (gamesList.children.length > 8) gamesList.removeChild(gamesList.lastChild);
         }
         
-        async function register() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            if (!username || !password) return statusMsg('Fill all fields!');
-            
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    statusMsg('Registered! Logging in...');
-                    setTimeout(login, 500);
-                } else {
-                    statusMsg(data.error);
-                }
-            } catch(e) {
-                statusMsg('Backend offline - using local mode');
-                localRegister();
-            }
+        function statusMsg(msg, color = '#fff') {
+            document.getElementById('status').textContent = msg;
+            document.getElementById('status').style.color = color;
         }
         
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUser = data.user;
-                    saveLocal();
-                    showGame();
-                } else {
-                    statusMsg(data.error);
-                }
-            } catch(e) {
-                statusMsg('Backend offline - local login');
-                localLogin(username, password);
-            }
+        function updateUI() {
+            document.getElementById('balance').textContent = `$${currentUser.balance?.toLocaleString() || '1,000'}`;
+            updatePets();
         }
         
-        function localRegister() {
-            const username = document.getElementById('username').value;
-            localStorage.setItem('vyxUsers', JSON.stringify({
-                ...JSON.parse(localStorage.getItem('vyxUsers') || '{}'),
-                [username]: { password: btoa(document.getElementById('password').value), balance: 1000, pets: [] }
-            }));
-            currentUser = { username, balance: 1000, pets: [] };
-            showGame();
-        }
-        
-        function localLogin(username, password) {
-            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
-            const user = users[username];
-            if (user && user.password === btoa(password)) {
-                currentUser = { username, ...user };
-                showGame();
-            } else {
-                statusMsg('Invalid credentials');
-            }
+        function updatePets() {
+            const petsList = document.getElementById('petsList');
+            petsList.innerHTML = '';
+            const pets = currentUser.pets || [];
+            pets.slice(-4).forEach(pet => {
+                const petDiv = document.createElement('div');
+                petDiv.className = 'pet';
+                petDiv.innerHTML = `<div class="pet-name">${pet.name}</div><div class="pet-value">$${pet.value?.toLocaleString()}</div>`;
+                petsList.appendChild(petDiv);
+            });
         }
         
         function showGame() {
@@ -277,121 +390,128 @@
             updateUI();
         }
         
-        function statusMsg(msg) {
-            document.getElementById('status').textContent = msg;
-        }
-        
-        function updateUI() {
-            document.getElementById('balance').textContent = `Balance: $${currentUser.balance?.toLocaleString() || '1,000'}`;
-            updatePets();
-        }
-        
-        function updatePets() {
-            const petsList = document.getElementById('petsList');
-            petsList.innerHTML = '';
-            const pets = currentUser.pets || [];
-            if (pets.length) {
-                pets.forEach(pet => {
-                    const petDiv = document.createElement('div');
-                    petDiv.className = 'pet';
-                    petDiv.innerHTML = `<div>${pet.name}</div><div>$${pet.value?.toLocaleString()}</div>`;
-                    petsList.appendChild(petDiv);
+        async function register() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            if (!username || !password) return statusMsg('Fill all fields!', '#ff6666');
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/register`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
                 });
+                const data = await res.json();
+                if (data.success) {
+                    statusMsg('Account created!', '#ffffff');
+                    setTimeout(login, 800);
+                } else statusMsg(data.error, '#ff6666');
+            } catch {
+                localRegister(username);
             }
+        }
+        
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/login`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username, password})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = data.user;
+                    showGame();
+                } else statusMsg(data.error, '#ff6666');
+            } catch {
+                localLogin(username, password);
+            }
+        }
+        
+        function localRegister(username) {
+            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
+            users[username] = {password: btoa(document.getElementById('password').value), balance: 1000, pets: []};
+            localStorage.setItem('vyxUsers', JSON.stringify(users));
+            currentUser = {username, balance: 1000, pets: []};
+            showGame();
+        }
+        
+        function localLogin(username, password) {
+            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
+            const user = users[username];
+            if (user && user.password === btoa(password)) {
+                currentUser = {username, ...user};
+                showGame();
+            } else statusMsg('Invalid login', '#ff6666');
         }
         
         async function startFlip() {
             const amount = parseInt(document.getElementById('betAmount').value);
-            if (!amount || amount > (currentUser.balance || 1000) || amount < 10) {
-                return statusMsg('Invalid bet!');
-            }
+            const balance = currentUser.balance || 1000;
+            if (!amount || amount > balance || amount < 10) return statusMsg('Invalid bet!', '#ff6666');
             
-            // Emit to other players
-            currentGameId = 'flip_' + Date.now();
-            socket.emit('join-game', currentGameId);
-            
+            socket.emit('join-game', `flip_${Date.now()}`);
             const coin = document.getElementById('coin');
-            const statusEl = document.getElementById('status');
-            
-            statusMsg('FLIPPING...');
-            coin.classList.add('spinning');
             document.getElementById('betAmount').disabled = true;
+            statusMsg('FLIPPING...', '#ffffff');
+            coin.classList.add('spinning');
             
             setTimeout(() => {
-                const isHeads = Math.random() > 0.5;
-                const won = isHeads;
-                const newBalance = (currentUser.balance || 1000) + (won ? amount : -amount);
-                
+                const won = Math.random() > 0.5;
+                const newBalance = balance + (won ? amount : -amount);
                 coin.className = `coin ${won ? 'coin-heads' : 'coin-tails'}`;
-                coin.textContent = won ? 'H' : 'T';
-                statusMsg(won ? `WON! +$${amount}` : `LOST! -$${amount}`);
+                coin.textContent = won ? 'HEADS' : 'TAILS';
+                statusMsg(won ? `YOU WON +$${amount}!` : `YOU LOST -$${amount}`, won ? '#ffffff' : '#888888');
                 
                 currentUser.balance = newBalance;
-                socket.emit('flip-result', { 
-                    gameId: currentGameId, 
-                    playerId: currentUser.username || 'YOU', 
-                    won, 
-                    amount 
-                });
-                
-                saveLocal();
+                socket.emit('flip-result', {playerId: currentUser.username || 'Player', won, amount});
+                localStorage.setItem('vyxUser', JSON.stringify(currentUser));
                 updateUI();
                 
                 setTimeout(() => {
                     document.getElementById('betAmount').disabled = false;
                     document.getElementById('betAmount').value = '';
-                    statusMsg('Place your bet!');
-                    coin.textContent = '?';
                     coin.className = 'coin';
+                    coin.textContent = '?';
+                    statusMsg('Enter bet to start');
                 }, 2500);
-            }, 1500);
+            }, 1200);
         }
         
         async function addPet() {
-            const petNames = ['Neon Dragon', 'Shadow Dragon', 'Frost Dragon', 'Bat Dragon'];
-            const petName = petNames[Math.floor(Math.random() * petNames.length)];
-            const petValue = [500000, 1200000, 800000, 300000][petNames.indexOf(petName)];
+            const petNames = ['Neon Dragon', 'Shadow Dragon', 'Frost Dragon', 'Bat Dragon', 'Owl'];
+            const petValues = [500000, 1200000, 800000, 300000, 100000];
+            const idx = Math.floor(Math.random() * petNames.length);
             
             try {
                 const res = await fetch(`${BACKEND_URL}/api/add-pet`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: currentUser.username, petName })
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: currentUser.username, petName: petNames[idx]})
                 });
                 const data = await res.json();
                 if (data.success) {
                     currentUser.pets = currentUser.pets || [];
-                    currentUser.pets.push({ name: petName, value: data.value });
+                    currentUser.pets.push({name: petNames[idx], value: data.value});
                     currentUser.balance += data.value;
                 }
-            } catch(e) {
-                // Local fallback
+            } catch {
                 currentUser.pets = currentUser.pets || [];
-                currentUser.pets.push({ name: petName, value: petValue });
-                currentUser.balance = (currentUser.balance || 1000) + petValue;
+                currentUser.pets.push({name: petNames[idx], value: petValues[idx]});
+                currentUser.balance = (currentUser.balance || 1000) + petValues[idx];
             }
             
-            saveLocal();
-            updateUI();
-            statusMsg(`Added ${petName}! +$${petValue.toLocaleString()}`);
-        }
-        
-        function saveLocal() {
             localStorage.setItem('vyxUser', JSON.stringify(currentUser));
+            updateUI();
+            statusMsg(`Pet added! +$${petValues[idx].toLocaleString()}`, '#ffffff');
         }
         
-        // Auto-login
         window.onload = () => {
             const saved = localStorage.getItem('vyxUser');
             if (saved) {
                 try {
                     currentUser = JSON.parse(saved);
                     showGame();
-                    // Try connect socket
                     setTimeout(() => socket.connect(), 1000);
                 } catch {}
-            } else {
-                document.getElementById('liveGamesList').innerHTML = 'Login to see live games!';
             }
         };
     </script>
