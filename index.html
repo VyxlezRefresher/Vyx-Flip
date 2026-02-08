@@ -1,519 +1,253 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vyx Flip - Adopt Me Coinflip</title>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: linear-gradient(135deg, #000000 0%, #111111 50%, #222222 100%);
-            color: #fff;
-            font-family: 'Orbitron', monospace;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-        
-        /* WHITE/BLACK GLASSMORPHISM */
-        .glass { 
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.8);
-        }
-        
-        .glow-white {
-            background: linear-gradient(45deg, #ffffff, #e0e0e0, #c0c0c0);
-            background-size: 300% 300%;
-            animation: gradientShift 3s ease infinite;
-            box-shadow: 0 0 30px #ffffff, inset 0 0 30px rgba(255,255,255,0.2);
-        }
-        @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-        
-        .container {
-            max-width: 420px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* HEADER - EXACT BLOXBLITZ LAYOUT */
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px 0;
-        }
-        .logo {
-            font-size: 32px;
-            font-weight: 900;
-            background: linear-gradient(45deg, #ffffff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 40px #ffffff;
-            letter-spacing: 4px;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            font-size: 14px;
-            color: #cccccc;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        /* CARDS - SAME STRUCTURE */
-        .card {
-            margin-bottom: 20px;
-            padding: 25px;
-            border-radius: 20px;
-            glass;
-        }
-        
-        /* BALANCE CARD */
-        .balance-card {
-            glow-white;
-            text-align: center;
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .balance-amount {
-            font-size: 36px;
-            font-weight: 900;
-            margin-bottom: 5px;
-            background: linear-gradient(45deg, #ffffff, #e0e0e0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .balance-label {
-            font-size: 14px;
-            color: #dddddd;
-            letter-spacing: 1px;
-        }
-        
-        /* INPUTS - SAME STYLE */
-        .input-group {
-            margin: 15px 0;
-            position: relative;
-        }
-        input {
-            width: 100%;
-            padding: 18px 20px;
-            border: 2px solid rgba(255,255,255,0.25);
-            border-radius: 15px;
-            background: rgba(0,0,0,0.5);
-            color: #fff;
-            font-family: 'Orbitron', monospace;
-            font-size: 16px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-        input:focus {
-            outline: none;
-            border-color: #ffffff;
-            box-shadow: 0 0 25px rgba(255,255,255,0.4);
-            background: rgba(0,0,0,0.7);
-        }
-        input::placeholder {
-            color: #888;
-        }
-        
-        /* BUTTONS */
-        .btn {
-            width: 100%;
-            padding: 18px;
-            border: none;
-            border-radius: 15px;
-            font-family: 'Orbitron', monospace;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .btn-primary {
-            glow-white;
-            color: #000;
-            font-weight: 900;
-        }
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(255,255,255,0.3);
-        }
-        .btn-secondary {
-            background: linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0.08));
-            border: 2px solid rgba(255,255,255,0.25);
-            color: #fff;
-            backdrop-filter: blur(10px);
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-3px);
-        }
-        
-        /* LIVE GAMES - SAME LAYOUT */
-        .live-section {
-            margin: 25px 0;
-        }
-        .live-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #ffffff;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-        .live-list {
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .live-game {
-            background: rgba(255,255,255,0.08);
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 12px;
-            border-left: 4px solid #ffffff;
-            animation: slideIn 0.4s ease-out;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .live-player { font-weight: 700; color: #ffffff; }
-        .live-result { font-size: 14px; }
-        .win { color: #ffffff !important; text-shadow: 0 0 10px #ffffff; }
-        .loss { color: #888888 !important; }
-        
-        /* COIN FLIP - SAME POSITION */
-        .flip-section {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .coin-container {
-            perspective: 1000px;
-            height: 150px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .coin {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 42px;
-            font-weight: 900;
-            border: 4px solid #ffffff;
-            transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            box-shadow: 0 0 40px rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.1);
-        }
-        .coin.spinning {
-            animation: coinFlip 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        @keyframes coinFlip {
-            0% { transform: rotateY(0deg) rotateX(0deg); }
-            100% { transform: rotateY(1080deg) rotateX(720deg); }
-        }
-        .coin-heads {
-            background: linear-gradient(45deg, #ffffff, #f0f0f0);
-            color: #000;
-            box-shadow: 0 0 40px #ffffff;
-        }
-        .coin-tails {
-            background: linear-gradient(45deg, #666666, #999999);
-            color: #fff;
-            box-shadow: 0 0 40px #cccccc;
-        }
-        
-        .status {
-            font-size: 20px;
-            font-weight: 700;
-            margin: 20px 0;
-            min-height: 30px;
-            text-align: center;
-            letter-spacing: 1px;
-        }
-        
-        /* PETS GRID */
-        .pets-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 20px 0;
-        }
-        .pet {
-            background: rgba(255,255,255,0.1);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .pet-name { font-weight: 700; margin-bottom: 5px; }
-        .pet-value { font-size: 14px; color: #cccccc; }
-        
-        .hidden { display: none !important; }
-        
-        @media (max-width: 480px) {
-            .container { padding: 15px; }
-            .logo { font-size: 26px; }
-            .balance-amount { font-size: 28px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VyxFlip</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ----- Global ----- */
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(180deg, #f2f2f2 0%, #e6e6e6 100%);
+    color: #111;
+    display: flex;
+    height: 100vh;
+  }
+
+  /* ----- Sidebar ----- */
+  .sidebar {
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e0e0e0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .balance-card {
+    background: #ffffff;
+    color: #000000;
+    border-radius: 12px;
+    padding: 16px 24px;
+    text-align: center;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  .balance-card h3 { margin: 0; font-size: 16px; font-weight: 600; }
+  .balance-card #user-balance { display: block; font-size: 36px; font-weight: 700; margin-top: 8px; }
+
+  .sidebar button {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    background: #f2f2f2;
+    color: #111;
+  }
+  .sidebar button:hover { background: #eaeaea; }
+
+  /* ----- Main Content ----- */
+  .main {
+    flex: 1;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+  }
+
+  /* ----- Coinflip Card ----- */
+  .coinflip-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  }
+
+  .coin-container {
+    perspective: 1000px;
+    margin: 20px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .coin {
+    width: 120px;
+    height: 120px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 1.6s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .side {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 800;
+    backface-visibility: hidden;
+    border: 3px solid #000;
+  }
+
+  .heads { background: #fff; color: #000; }
+  .tails { background: #000; color: #fff; transform: rotateY(180deg); }
+
+  .btn-primary {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  .btn-primary:hover { background: #1a1a1a; }
+
+  /* ----- Chat Sidebar ----- */
+  .chat {
+    width: 280px;
+    background: #ffffff;
+    border-left: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .chat-header { font-weight: 700; font-size: 18px; margin-bottom: 16px; }
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .chat-message {
+    background: #f2f2f2;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 14px;
+    word-wrap: break-word;
+  }
+
+  .chat-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .chat-input input {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+  }
+  .chat-input button {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: none;
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- HEADER - IDENTICAL LAYOUT -->
-        <div class="header">
-            <div class="logo">VYX FLIP</div>
-            <div class="subtitle">Adopt Me Coinflip</div>
-        </div>
-        
-        <!-- AUTH SECTION -->
-        <div id="auth">
-            <div class="card">
-                <div class="input-group">
-                    <input id="username" placeholder="Enter Username" maxlength="12">
-                </div>
-                <div class="input-group">
-                    <input id="password" type="password" placeholder="Enter Password">
-                </div>
-                <button class="btn btn-primary" onclick="register()">Create Account</button>
-                <button class="btn btn-secondary" onclick="login()">Play Now</button>
-            </div>
-        </div>
-        
-        <!-- MAIN GAME -->
-        <div id="game" class="hidden">
-            <!-- BALANCE -->
-            <div class="balance-card">
-                <div class="balance-amount" id="balance">$1,000</div>
-                <div class="balance-label">AVAILABLE</div>
-            </div>
-            
-            <!-- LIVE GAMES -->
-            <div class="card">
-                <div class="live-section">
-                    <div class="live-title">🔴 LIVE GAMES</div>
-                    <div class="live-list" id="liveGamesList">
-                        <div style="text-align:center;color:#888;font-size:14px;">Waiting for players...</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- COIN FLIP -->
-            <div class="flip-section">
-                <div class="input-group">
-                    <input id="betAmount" type="number" placeholder="Enter Bet Amount" min="10" max="50000">
-                </div>
-                <button class="btn btn-primary" onclick="startFlip()" style="margin-bottom:20px;">
-                    💰 DOUBLE OR NOTHING
-                </button>
-                <div class="coin-container">
-                    <div class="coin" id="coin">?</div>
-                </div>
-                <div class="status" id="status">Enter bet to start</div>
-            </div>
-            
-            <!-- PETS -->
-            <div class="card">
-                <div class="pets-grid" id="petsList"></div>
-                <button class="btn btn-secondary" onclick="addPet()">➕ CLAIM PET BONUS</button>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        const BACKEND_URL = 'http://localhost:3000';
-        const socket = io(BACKEND_URL);
-        let currentUser = null;
-        
-        // ALL SAME FUNCTIONALITY - JUST WHITE/BLACK COLORS
-        socket.on('player-joined', (playerId) => addLiveGame(playerId.slice(-6), '🔥 JOINED'));
-        socket.on('game-result', (data) => {
-            const result = data.won ? `💰 +$${data.amount}` : `💸 -$${data.amount}`;
-            addLiveGame(data.playerId.slice(-6), result, data.won);
-        });
-        
-        function addLiveGame(playerId, action, won = null) {
-            const gamesList = document.getElementById('liveGamesList');
-            const gameDiv = document.createElement('div');
-            gameDiv.className = 'live-game';
-            gameDiv.innerHTML = `
-                <span class="live-player">${playerId}</span>
-                <span class="live-result ${won ? 'win' : 'loss'}">${action}</span>
-            `;
-            gamesList.insertBefore(gameDiv, gamesList.firstChild);
-            while (gamesList.children.length > 8) gamesList.removeChild(gamesList.lastChild);
-        }
-        
-        function statusMsg(msg, color = '#fff') {
-            document.getElementById('status').textContent = msg;
-            document.getElementById('status').style.color = color;
-        }
-        
-        function updateUI() {
-            document.getElementById('balance').textContent = `$${currentUser.balance?.toLocaleString() || '1,000'}`;
-            updatePets();
-        }
-        
-        function updatePets() {
-            const petsList = document.getElementById('petsList');
-            petsList.innerHTML = '';
-            const pets = currentUser.pets || [];
-            pets.slice(-4).forEach(pet => {
-                const petDiv = document.createElement('div');
-                petDiv.className = 'pet';
-                petDiv.innerHTML = `<div class="pet-name">${pet.name}</div><div class="pet-value">$${pet.value?.toLocaleString()}</div>`;
-                petsList.appendChild(petDiv);
-            });
-        }
-        
-        function showGame() {
-            document.getElementById('auth').classList.add('hidden');
-            document.getElementById('game').classList.remove('hidden');
-            updateUI();
-        }
-        
-        async function register() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            if (!username || !password) return statusMsg('Fill all fields!', '#ff6666');
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/register`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
-                });
-                const data = await res.json();
-                if (data.success) {
-                    statusMsg('Account created!', '#ffffff');
-                    setTimeout(login, 800);
-                } else statusMsg(data.error, '#ff6666');
-            } catch {
-                localRegister(username);
-            }
-        }
-        
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/login`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username, password})
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUser = data.user;
-                    showGame();
-                } else statusMsg(data.error, '#ff6666');
-            } catch {
-                localLogin(username, password);
-            }
-        }
-        
-        function localRegister(username) {
-            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
-            users[username] = {password: btoa(document.getElementById('password').value), balance: 1000, pets: []};
-            localStorage.setItem('vyxUsers', JSON.stringify(users));
-            currentUser = {username, balance: 1000, pets: []};
-            showGame();
-        }
-        
-        function localLogin(username, password) {
-            const users = JSON.parse(localStorage.getItem('vyxUsers') || '{}');
-            const user = users[username];
-            if (user && user.password === btoa(password)) {
-                currentUser = {username, ...user};
-                showGame();
-            } else statusMsg('Invalid login', '#ff6666');
-        }
-        
-        async function startFlip() {
-            const amount = parseInt(document.getElementById('betAmount').value);
-            const balance = currentUser.balance || 1000;
-            if (!amount || amount > balance || amount < 10) return statusMsg('Invalid bet!', '#ff6666');
-            
-            socket.emit('join-game', `flip_${Date.now()}`);
-            const coin = document.getElementById('coin');
-            document.getElementById('betAmount').disabled = true;
-            statusMsg('FLIPPING...', '#ffffff');
-            coin.classList.add('spinning');
-            
-            setTimeout(() => {
-                const won = Math.random() > 0.5;
-                const newBalance = balance + (won ? amount : -amount);
-                coin.className = `coin ${won ? 'coin-heads' : 'coin-tails'}`;
-                coin.textContent = won ? 'HEADS' : 'TAILS';
-                statusMsg(won ? `YOU WON +$${amount}!` : `YOU LOST -$${amount}`, won ? '#ffffff' : '#888888');
-                
-                currentUser.balance = newBalance;
-                socket.emit('flip-result', {playerId: currentUser.username || 'Player', won, amount});
-                localStorage.setItem('vyxUser', JSON.stringify(currentUser));
-                updateUI();
-                
-                setTimeout(() => {
-                    document.getElementById('betAmount').disabled = false;
-                    document.getElementById('betAmount').value = '';
-                    coin.className = 'coin';
-                    coin.textContent = '?';
-                    statusMsg('Enter bet to start');
-                }, 2500);
-            }, 1200);
-        }
-        
-        async function addPet() {
-            const petNames = ['Neon Dragon', 'Shadow Dragon', 'Frost Dragon', 'Bat Dragon', 'Owl'];
-            const petValues = [500000, 1200000, 800000, 300000, 100000];
-            const idx = Math.floor(Math.random() * petNames.length);
-            
-            try {
-                const res = await fetch(`${BACKEND_URL}/api/add-pet`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: currentUser.username, petName: petNames[idx]})
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentUser.pets = currentUser.pets || [];
-                    currentUser.pets.push({name: petNames[idx], value: data.value});
-                    currentUser.balance += data.value;
-                }
-            } catch {
-                currentUser.pets = currentUser.pets || [];
-                currentUser.pets.push({name: petNames[idx], value: petValues[idx]});
-                currentUser.balance = (currentUser.balance || 1000) + petValues[idx];
-            }
-            
-            localStorage.setItem('vyxUser', JSON.stringify(currentUser));
-            updateUI();
-            statusMsg(`Pet added! +$${petValues[idx].toLocaleString()}`, '#ffffff');
-        }
-        
-        window.onload = () => {
-            const saved = localStorage.getItem('vyxUser');
-            if (saved) {
-                try {
-                    currentUser = JSON.parse(saved);
-                    showGame();
-                    setTimeout(() => socket.connect(), 1000);
-                } catch {}
-            }
-        };
-    </script>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="balance-card">
+      <h3>Balance</h3>
+      <span id="user-balance">1000</span>
+    </div>
+    <button onclick="alert('Deposit Clicked')">Deposit</button>
+    <button onclick="alert('Withdraw Clicked')">Withdraw</button>
+    <button onclick="alert('History Clicked')">Game History</button>
+  </div>
+
+  <!-- Main Coinflip Area -->
+  <div class="main">
+    <div class="coinflip-card">
+      <h2>Coinflip</h2>
+      <div class="coin-container">
+        <div class="coin" id="coin">
+          <div class="side heads">H</div>
+          <div class="side tails">T</div>
+        </div>
+      </div>
+      <input type="number" id="betAmount" placeholder="Enter bet amount" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc;">
+      <button class="btn-primary" onclick="flipCoin()">Flip Coin</button>
+    </div>
+  </div>
+
+  <!-- Chat Sidebar -->
+  <div class="chat">
+    <div class="chat-header">Global Chat</div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-message"><strong>Admin:</strong> Welcome to VyxFlip!</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="chatInput" placeholder="Type a message">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+<script>
+  /* ----- Coinflip ----- */
+  let rotation = 0;
+  function flipCoin() {
+    const coin = document.getElementById("coin");
+    const amount = parseInt(document.getElementById("betAmount").value) || 0;
+    let balance = parseInt(document.getElementById("user-balance").textContent);
+
+    if (amount <= 0 || amount > balance) { alert("Invalid bet!"); return; }
+
+    const isHeads = Math.random() > 0.5;
+
+    rotation += 1800 + (isHeads ? 0 : 180);
+    coin.style.transform = `rotateY(${rotation}deg)`;
+
+    setTimeout(() => {
+      // Update balance (demo logic: double on win)
+      balance = isHeads ? balance + amount : balance - amount;
+      document.getElementById("user-balance").textContent = balance;
+    }, 1600);
+  }
+
+  /* ----- Chat ----- */
+  function sendMessage() {
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chat = document.getElementById("chatMessages");
+    const div = document.createElement("div");
+    div.className = "chat-message";
+    div.innerHTML = `<strong>You:</strong> ${msg}`;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    input.value = "";
+  }
+
+  /* ----- Roblox Verification Placeholder ----- */
+  function generateVerificationCode() {
+    const code = "vyxflip-" + Math.random().toString(36).substring(2,7).toUpperCase();
+    alert("Place this code in your Roblox About section: " + code);
+    return code;
+  }
+</script>
+
 </body>
 </html>
