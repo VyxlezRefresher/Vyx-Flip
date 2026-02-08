@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VyxFlip Multiplayer</title>
+<title>VyxFlip</title>
 <style>
 body { margin:0;font-family:Arial,sans-serif; display:flex;height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63); color:#fff;}
 #loginModal{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:100;}
@@ -104,6 +104,18 @@ function joinCoinflip(){
   const bet = parseInt(prompt("Enter bet amount")) || 0;
   if(bet<=0) return;
   ws.send(JSON.stringify({type:"joinCoinflip", betAmount:bet}));
+}
+
+function sendChat(){
+  const msg = document.getElementById("chatInput").value.trim();
+  if(!msg) return;
+  ws.send(JSON.stringify({type:"chat", message:msg}));
+  document.getElementById("chatInput").value="";
+}
+</script>
+
+</body>
+</html>
 }
 
 function sendChat(){
