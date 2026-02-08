@@ -20,7 +20,7 @@ wss.on("connection", ws => {
       users[data.username] = users[data.username] || { balance: 0 };
       ws.username = data.username;
       ws.send(JSON.stringify({ type: "loginSuccess", balance: users[data.username].balance }));
-    }
+    } 
 
     // JOIN COINFLIP
     if (data.type === "joinCoinflip") {
