@@ -10,9 +10,8 @@ const wss = new WebSocketServer({ server });
 app.use(express.static("public"));
 
 let users = {}; // { username: { balance: 0 } }
-let coinflipQueue = []; // waiting players [{username, bet, ws}]
+let coinflipQueue = []; // waiting players
 
-// WebSocket connection
 wss.on("connection", ws => {
   ws.on("message", msg => {
     const data = JSON.parse(msg);
@@ -45,7 +44,6 @@ wss.on("connection", ws => {
   });
 });
 
-// Broadcast helper
 function broadcast(msg) {
   wss.clients.forEach(client => {
     if (client.readyState === 1) client.send(JSON.stringify(msg));
